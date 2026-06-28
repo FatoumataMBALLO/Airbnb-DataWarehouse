@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Données brutes
+Data/*.csv
+Data/*.csv.gz
+
+# Données générées
+Warehouse/*.csv
+Warehouse/*.db
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Environnement virtuel
+venv/
+.env
