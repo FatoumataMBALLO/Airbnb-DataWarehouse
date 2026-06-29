@@ -5,18 +5,18 @@ __pycache__/
 # Jupyter
 .ipynb_checkpoints/
 
-# Données brutes
-Data/*.csv
-Data/*.csv.gz
+# VS Code
+.vscode/
 
-# Données générées
+# Base SQLite
+*.db
+
+# Données sources
+Data/
+
+# Entrepôt de données
 Warehouse/*.csv
-Warehouse/*.db
 
-# Fichiers système
-.DS_Store
+# Windows
 Thumbs.db
-
-# Environnement virtuel
-venv/
-.env
+desktop.ini

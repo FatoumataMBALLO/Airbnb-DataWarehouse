@@ -8,15 +8,11 @@ WAREHOUSE_DIR = BASE_DIR / "Warehouse"
 def load_data():
 
     print("Lecture de listings...")
-    listings = pd.read_csv(WAREHOUSE_DIR / "listings_clean.csv")
-    print(f"✅ Listings : {listings.shape}")
-
-    print("Lecture de reviews...")
-    reviews = pd.read_csv(
-        WAREHOUSE_DIR / "reviews_clean.csv",
-        low_memory=False
+    listings = pd.read_csv(
+        WAREHOUSE_DIR / "listings_clean.csv",
+        engine="python"
     )
-    print(f"✅ Reviews : {reviews.shape}")
+    print(f"✅ Listings : {listings.shape}")
 
     print("Lecture de calendar...")
     calendar = pd.read_csv(
@@ -25,4 +21,4 @@ def load_data():
     )
     print(f"✅ Calendar : {calendar.shape}")
 
-    return listings, reviews, calendar
+    return listings, calendar
