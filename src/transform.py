@@ -1,46 +1,12 @@
 import pandas as pd
 
-
-def create_dim_property(listings):
-    """
-    Crée la dimension des logements (dim_property).
-    """
-
-    dim_property = listings[
-        [
-            "id",
-            "name",
-            "property_type",
-            "room_type",
-            "accommodates",
-            "bedrooms",
-            "beds",
-            "neighbourhood_cleansed",
-        ]
-    ].copy()
-
-    dim_property.rename(columns={"id": "listing_id"}, inplace=True)
-
-    dim_property.insert(
-        0,
-        "property_key",
-        range(1, len(dim_property) + 1)
-    )
-
-    print(f"✅ dim_property créée ({len(dim_property)} lignes)")
-
-    return dim_property
-
-
 # ----------------------------------------------------
-# Creation im_host
+# Dimensions
 # ----------------------------------------------------
+
 
 def create_dim_host(listings):
-    """
-    Crée la dimension des hôtes (dim_host).
-    """
-
+    """Crée la dimension des hôtes (dim_host)."""
     dim_host = listings[
         [
             "host_id",
@@ -49,303 +15,206 @@ def create_dim_host(listings):
             "host_is_superhost",
             "host_response_rate",
         ]
-    ].drop_duplicates().copy()
+    ].drop_duplicates()
 
-    # Conversion de la date
-    dim_host["host_since"] = pd.to_datetime(
-        dim_host["host_since"],
-        errors="coerce"
-    )
+    dim_host = dim_host.copy()
 
-    # Conversion du taux de réponse
-    dim_host["host_response_rate"] = (
-        dim_host["host_response_rate"]
-        .str.replace("%", "", regex=False)
-    )
+    # host_since est déjà en datetime (parsé dans extract.py), pas besoin
+    # de repasser par pd.to_datetime ici.
 
+    # Nettoyage et conversion du taux de réponse ("95%" -> 95.0)
     dim_host["host_response_rate"] = pd.to_numeric(
-        dim_host["host_response_rate"],
-        errors="coerce"
+        dim_host["host_response_rate"].str.rstrip("%"),
+        errors="coerce",
     )
 
     # Création de la clé technique
-    dim_host.insert(
-        0,
-        "host_key",
-        range(1, len(dim_host) + 1)
-    )
+    dim_host.insert(0, "host_key", range(1, len(dim_host) + 1))
 
     print(f"✅ dim_host créée ({len(dim_host)} lignes)")
-
     return dim_host
 
-    
-# ----------------------------------------------------
-# Création dim_location
-# ----------------------------------------------------
 
 def create_dim_location(listings):
-    """
-    Crée la dimension des localisations.
-    """
-
+    """Crée la dimension des localisations."""
     dim_location = listings[
-        [
-            "neighbourhood_cleansed",
-            "latitude",
-            "longitude",
-        ]
-    ].drop_duplicates().copy()
+        ["neighbourhood_cleansed", "latitude", "longitude"]
+    ].drop_duplicates(subset=["neighbourhood_cleansed"]).copy()
 
     # Création de la clé technique
-    dim_location.insert(
-        0,
-        "location_key",
-        range(1, len(dim_location) + 1)
-    )
+    dim_location.insert(0, "location_key", range(1, len(dim_location) + 1))
 
     print(f"✅ dim_location créée ({len(dim_location)} lignes)")
-
     return dim_location
-    # ----------------------------------------------------
-# Création fact_availability
-# ----------------------------------------------------
 
-def create_fact_availability(calendar):
-    """
-    Crée la table de faits des disponibilités.
-    """
 
-    fact_availability = calendar[
+def create_dim_property(listings, dim_host, dim_location):
+    """Crée la dimension des logements connectée à Host et Location."""
+    dim_property = listings[
         [
-            "listing_id",
-            "date",
-            "available",
-            "price"
+            "id",
+            "host_id",
+            "neighbourhood_cleansed",
+            "name",
+            "property_type",
+            "room_type",
+            "accommodates",
+            "bedrooms",
+            "beds",
         ]
-    ].copy()
+    ].rename(columns={"id": "listing_id"})
 
-    # Conversion de la date
-    fact_availability["date"] = pd.to_datetime(
-        fact_availability["date"],
-        errors="coerce"
+    # Ajout de host_key
+    dim_property = dim_property.merge(
+        dim_host[["host_id", "host_key"]],
+        on="host_id",
+        how="left",
+        validate="many_to_one",
     )
 
-    # Nettoyage du prix
-    fact_availability["price"] = (
-        fact_availability["price"]
-        .astype(str)
-        .str.replace("$", "", regex=False)
-        .str.replace(",", "", regex=False)
+    # Ajout de location_key
+    dim_property = dim_property.merge(
+        dim_location[["neighbourhood_cleansed", "location_key"]],
+        on="neighbourhood_cleansed",
+        how="left",
+        validate="many_to_one",
     )
 
-    fact_availability["price"] = pd.to_numeric(
-        fact_availability["price"],
-        errors="coerce"
+    # Suppression des colonnes métiers pour garder le modèle propre
+    dim_property = dim_property.drop(
+        columns=["host_id", "neighbourhood_cleansed"]
     )
 
-    # Conversion disponibilité
-    fact_availability["available"] = (
-        fact_availability["available"]
-        .map({"t": 1, "f": 0})
-    )
+    # Création de la clé technique
+    dim_property.insert(0, "property_key", range(1, len(dim_property) + 1))
 
-    # Clé technique
-    fact_availability.insert(
-        0,
-        "fact_availability_key",
-        range(1, len(fact_availability) + 1)
-    )
+    print(f"✅ dim_property créée ({len(dim_property)} lignes)")
+    return dim_property
 
-    print(f"✅ fact_availability créée ({len(fact_availability)} lignes)")
 
-    return fact_availability
-
-    # ----------------------------------------------------
-# Création dim_date
-# ----------------------------------------------------
-
-def create_dim_date(calendar):
+def create_dim_date(calendar, reviews):
     """
-    Crée la dimension des dates.
+    Crée la dimension des dates (dim_date) en une plage CONTINUE de jours,
+    du plus ancien au plus récent parmi calendar et reviews.
     """
+    all_dates = pd.concat(
+        [calendar["date"], reviews["date"]], ignore_index=True
+    ).dropna()
 
-    dim_date = pd.DataFrame()
+    date_min = all_dates.min()
+    date_max = all_dates.max()
 
-    dim_date["date"] = pd.to_datetime(
-        calendar["date"],
-        errors="coerce"
+    dim_date = pd.DataFrame(
+        {"date": pd.date_range(start=date_min, end=date_max, freq="D")}
     )
 
-    dim_date = dim_date.drop_duplicates()
-
+    # Extraction des attributs de temps
     dim_date["year"] = dim_date["date"].dt.year
     dim_date["month"] = dim_date["date"].dt.month
     dim_date["month_name"] = dim_date["date"].dt.month_name()
+    dim_date["month_year"] = (
+        dim_date["month_name"] + " " + dim_date["year"].astype(str)
+    )
+    dim_date["month_year_sort"] = (
+        dim_date["year"] * 100 + dim_date["date"].dt.month
+    )
     dim_date["quarter"] = dim_date["date"].dt.quarter
-    dim_date["week"] = dim_date["date"].dt.isocalendar().week
     dim_date["day"] = dim_date["date"].dt.day
-    dim_date["day_name"] = dim_date["date"].dt.day_name()
+    dim_date["day_of_week"] = dim_date["date"].dt.day_name()
+    dim_date["is_weekend"] = dim_date["date"].dt.dayofweek >= 5
 
-    dim_date.insert(
-        0,
-        "date_key",
-        range(1, len(dim_date) + 1)
+    _mois_fr = {
+        1: "Jan", 2: "Fev", 3: "Mar", 4: "Avr", 5: "Mai", 6: "Juin",
+        7: "Juil", 8: "Aou", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+    }
+    dim_date["month_abbr_fr"] = dim_date["date"].dt.month.map(_mois_fr)
+
+    _jours_fr = {
+        0: "Lundi", 1: "Mardi", 2: "Mercredi", 3: "Jeudi",
+        4: "Vendredi", 5: "Samedi", 6: "Dimanche",
+    }
+    dim_date["day_of_week_fr"] = dim_date["date"].dt.dayofweek.map(_jours_fr)
+    dim_date["day_of_week_sort"] = dim_date["date"].dt.dayofweek + 1
+
+    dim_date.insert(0, "date_key", range(1, len(dim_date) + 1))
+
+    print(
+        f"dim_date creee ({len(dim_date)} lignes, continue de "
+        f"{date_min.date()} a {date_max.date()})"
     )
-
-    print(f"✅ dim_date créée ({len(dim_date)} lignes)")
-
     return dim_date
-    # ----------------------------------------------------
-# Liaison Fact ↔ Dimensions
+
+
+# ----------------------------------------------------
+# Tables de faits
 # ----------------------------------------------------
 
-def link_fact_availability(
-    fact_availability,
-    dim_property,
-    dim_date
-):
-    """
-    Remplace les identifiants métier par les clés techniques.
-    """
 
-    # ---------- Jointure Property ----------
-    fact_availability = fact_availability.merge(
-        dim_property[["property_key", "listing_id"]],
-        on="listing_id",
-        how="left"
+def create_fact_availability(calendar):
+    """Crée la table de faits brute de disponibilité (avant liaison aux clés)."""
+    fact_availability = calendar[["listing_id", "date", "available"]].copy()
+
+    # 't' / 'f' -> 1 / 0 (entier plutôt que booléen : évite les soucis de
+    # compatibilité de type booléen rencontrés dans certaines mesures DAX
+    # Power BI). Permet d'utiliser directement SUM() côté DAX au lieu
+    # d'un CALCULATE avec filtre = TRUE.
+    fact_availability["available"] = (
+        fact_availability["available"].astype(str).eq("t").astype("int8")
     )
 
-    # ---------- Jointure Date ----------
-    fact_availability = fact_availability.merge(
-        dim_date[["date_key", "date"]],
-        on="date",
-        how="left"
-    )
-
-    # ---------- Suppression des clés métier ----------
-    fact_availability.drop(
-        columns=[
-            "listing_id",
-            "date"
-        ],
-        inplace=True
-    )
-
-    print("✅ Fact_availability reliée aux dimensions")
-
+    print(f"✅ fact_availability (brute) créée ({len(fact_availability)} lignes)")
     return fact_availability
 
-    # ----------------------------------------------------
-# Liaison fact_availability ↔ dimensions
-# ----------------------------------------------------
 
-def link_fact_availability(
-    fact_availability,
-    dim_property,
-    dim_date
-):
-    """
-    Remplace les identifiants métier par les clés techniques.
-    """
-
-    # Jointure avec dim_property
+def link_fact_availability(fact_availability, dim_property, dim_date):
+    """Relie fact_availability à dim_property et dim_date via les clés techniques."""
     fact_availability = fact_availability.merge(
-        dim_property[
-            [
-                "listing_id",
-                "property_key"
-            ]
-        ],
+        dim_property[["listing_id", "property_key"]],
         on="listing_id",
-        how="left"
+        how="left",
+        validate="many_to_one",
     )
 
-    # Jointure avec dim_date
     fact_availability = fact_availability.merge(
-        dim_date[
-            [
-                "date",
-                "date_key"
-            ]
-        ],
+        dim_date[["date", "date_key"]],
         on="date",
-        how="left"
+        how="left",
+        validate="many_to_one",
     )
 
-    # On garde uniquement les clés techniques
-    fact_availability = fact_availability[
-        [
-            "fact_availability_key",
-            "property_key",
-            "date_key",
-            "available",
-            "price"
-        ]
-    ]
+    fact_availability = fact_availability.drop(columns=["listing_id", "date"])
 
-    print("✅ Liaison avec les dimensions effectuée")
+    fact_availability.insert(
+        0, "fact_availability_key", range(1, len(fact_availability) + 1)
+    )
 
+    print(f"✅ fact_availability liée ({len(fact_availability)} lignes)")
     return fact_availability
 
-    from pathlib import Path
 
-
-def create_fact_reviews():
-
+def create_fact_reviews(reviews, dim_property, dim_date):
     """
-    Création de fact_reviews en lecture par morceaux.
+    Crée et relie fact_reviews en une seule passe (create + link fusionnés,
+    comme pour fact_availability, mais ici sans étape intermédiaire car
+    reviews est déjà minimal : listing_id, review_id, date).
     """
-
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    WAREHOUSE_DIR = BASE_DIR / "Warehouse"
-
-    chunks = []
-
-    print("Lecture des reviews par morceaux...")
-
-    for chunk in pd.read_csv(
-        WAREHOUSE_DIR / "reviews_clean.csv",
-        chunksize=100000,
-        low_memory=False
-    ):
-
-        fact = chunk[
-            [
-                "listing_id",
-                "id",
-                "date"
-            ]
-        ].copy()
-
-        fact.rename(
-            columns={
-                "id": "review_id",
-                "date": "review_date"
-            },
-            inplace=True
-        )
-
-        fact["review_date"] = pd.to_datetime(
-            fact["review_date"],
-            errors="coerce"
-        )
-
-        chunks.append(fact)
-
-        print(f"   {len(chunks)} chunk(s) traité(s)...")
-
-    fact_reviews = pd.concat(
-        chunks,
-        ignore_index=True
-     )
-
-    fact_reviews.insert(
-        0,
-        "fact_review_key",
-        range(1, len(fact_reviews)+1)
+    fact_reviews = reviews.merge(
+        dim_property[["listing_id", "property_key"]],
+        on="listing_id",
+        how="left",
+        validate="many_to_one",
     )
 
-    print(f"✅ fact_reviews créée ({len(fact_reviews)} lignes)")
+    fact_reviews = fact_reviews.merge(
+        dim_date[["date", "date_key"]],
+        on="date",
+        how="left",
+        validate="many_to_one",
+    )
 
+    fact_reviews = fact_reviews.drop(columns=["listing_id", "date"])
+
+    fact_reviews.insert(0, "fact_review_key", range(1, len(fact_reviews) + 1))
+
+    print(f"✅ fact_reviews créée et liée ({len(fact_reviews)} lignes)")
     return fact_reviews

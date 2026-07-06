@@ -1,10 +1,5 @@
-import sqlite3
 from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-WAREHOUSE_DIR = BASE_DIR / "Warehouse"
-
-DB_PATH = WAREHOUSE_DIR / "airbnb_dw.db"
+import pandas as pd
 
 
 def save_tables(
@@ -12,80 +7,55 @@ def save_tables(
     dim_host,
     dim_location,
     dim_date,
-    fact_availability
+    fact_availability,
+    fact_reviews,
 ):
-    """
-    Sauvegarde les tables dans des CSV et dans SQLite.
-    """
+    """Sauvegarde toutes les dimensions et tables de faits dans le Warehouse."""
 
-    print("\n===== Sauvegarde des CSV =====")
+    base_dir = Path(__file__).resolve().parent.parent
+    output_dir = base_dir / "Warehouse"
 
-    dim_property.to_csv(
-        WAREHOUSE_DIR / "dim_property.csv",
-        index=False
-    )
+    try:
+        # Création sécurisée du dossier
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-    dim_host.to_csv(
-        WAREHOUSE_DIR / "dim_host.csv",
-        index=False
-    )
+        # Cartographie des DataFrames et de leurs chemins cibles
+        tables_to_save = {
+            "dim_property": (dim_property, output_dir / "dim_property.csv"),
+            "dim_host": (dim_host, output_dir / "dim_host.csv"),
+            "dim_location": (dim_location, output_dir / "dim_location.csv"),
+            "dim_date": (dim_date, output_dir / "dim_date.csv"),
+            "fact_availability": (fact_availability, output_dir / "fact_availability.csv"),
+            "fact_reviews": (fact_reviews, output_dir / "fact_reviews.csv"),
+        }
 
-    dim_location.to_csv(
-        WAREHOUSE_DIR / "dim_location.csv",
-        index=False
-    )
+        # Sauvegarde dynamique avec retour utilisateur
+        print("💾 Début de la sauvegarde dans le Warehouse...")
+        for name, (df, path) in tables_to_save.items():
+            if df is None or df.empty:
+                print(f"⚠️ Le DataFrame '{name}' est vide ou absent. Sauvegarde ignorée.")
+                continue
 
-    dim_date.to_csv(
-        WAREHOUSE_DIR / "dim_date.csv",
-        index=False
-    )
+            df.to_csv(path, index=False)
+            print(f"  -> {name}.csv sauvegardé ({len(df)} lignes)")
 
-    fact_availability.to_csv(
-        WAREHOUSE_DIR / "fact_availability.csv",
-        index=False
-    )
+            # Si les fichiers CSV restent trop lourds / trop lents à relire,
+            # décommente les 2 lignes suivantes pour sauvegarder aussi en
+            # Parquet (5-10x plus compact, bien plus rapide à relire) :
+            # df.to_parquet(path.with_suffix(".parquet"), index=False)
+            # print(f"  -> {name}.parquet sauvegardé également")
 
-    print("✅ CSV sauvegardés")
+        # Vérification globale (Optionnel mais rassurant)
+        print("\n🔍 Vérification du Warehouse :")
+        property_path = tables_to_save["dim_property"][1]
 
-    print("\n===== Sauvegarde SQLite =====")
+        if property_path.exists():
+            test = pd.read_csv(property_path, nrows=3)
+            print(f"✅ Exemple réussi avec dim_property. Colonnes : {test.columns.tolist()}")
 
-    conn = sqlite3.connect(DB_PATH)
+        print("\n🎉 Toutes les tables valides ont été sauvegardées avec succès !")
 
-    dim_property.to_sql(
-        "dim_property",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    dim_host.to_sql(
-        "dim_host",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    dim_location.to_sql(
-        "dim_location",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    dim_date.to_sql(
-        "dim_date",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    fact_availability.to_sql(
-        "fact_availability",
-        conn,
-        if_exists="replace",
-        index=False
-    )
-
-    conn.close()
-
-    print("✅ Base SQLite mise à jour")
+    except PermissionError:
+        print(f"❌ Erreur de droits : Impossible d'écrire dans le dossier {output_dir}. Vérifiez qu'un fichier n'est pas ouvert ailleurs (ex: Excel).")
+    except Exception as e:
+        print(f"❌ Une erreur critique est survenue lors de la sauvegarde : {str(e)}")
