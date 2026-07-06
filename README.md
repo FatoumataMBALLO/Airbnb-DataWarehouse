@@ -1,126 +1,254 @@
-# Airbnb Data Warehouse
+# 🏠 Data Warehouse Airbnb – Pipeline ETL & Tableau de bord Power BI
 
-## Project Overview
-
-This project consists of building a complete Data Warehouse from Airbnb Paris public data.
-
-The objective is to demonstrate the implementation of an ETL pipeline in Python, the construction of a Star Schema, data storage in SQLite, and the creation of an analytical dashboard using Power BI.
+> Conception d'un **Data Warehouse** à partir de données Airbnb en mettant en œuvre un pipeline **ETL en Python**, une modélisation **en schéma en étoile** et un tableau de bord interactif sous **Power BI**.
 
 ---
 
-## Objectives
+## 📌 Présentation du projet
 
-- Extract Airbnb datasets
-- Clean and transform the data
-- Build a dimensional model (Star Schema)
-- Create fact and dimension tables
-- Load the data into SQLite
-- Visualize KPIs with Power BI
+Dans le cadre d'un projet de Data Engineering / Business Intelligence, l'objectif était de transformer des données brutes Airbnb en un **entrepôt de données** permettant de produire des indicateurs décisionnels.
+
+Le projet couvre l'ensemble de la chaîne de traitement des données :
+
+- Extraction des données
+- Nettoyage et transformation
+- Modélisation dimensionnelle
+- Chargement dans une base SQLite
+- Visualisation dans Power BI
 
 ---
 
-## Technologies
+## 🎯 Objectifs
 
-- Python
-- Pandas
-- SQLite
-- Power BI
-- Git & GitHub
-## Project Structure
+- Développer un pipeline ETL en Python
+- Construire un Data Warehouse selon un schéma en étoile
+- Créer des dimensions et des tables de faits
+- Automatiser le chargement dans SQLite
+- Concevoir un tableau de bord interactif avec Power BI
 
-```text
-Airbnb-DataWarehouse
+---
+
+# 🛠 Technologies utilisées
+
+| Technologie | Utilisation |
+|-------------|-------------|
+| Python | Pipeline ETL |
+| Pandas | Nettoyage et transformation des données |
+| SQLite | Base de données |
+| Power BI | Visualisation |
+| Git | Gestion de versions |
+| GitHub | Hébergement du projet |
+
+---
+
+# 📂 Architecture du projet
+
+```
+Airbnb-DataWarehouse/
+
+├── Warehouse/
+│   ├── airbnb_dw.db
+│   ├── dim_property.csv
+│   ├── dim_host.csv
+│   ├── dim_location.csv
+│   ├── dim_date.csv
+│   ├── fact_availability.csv
+│   └── fact_reviews.csv
 │
-├── Data/                # Raw Airbnb datasets
-├── Images/              # Dashboard screenshots
-├── Notebooks/           # Exploratory notebooks
-├── Power BI/            # Power BI dashboard
-├── sql/                 # SQL scripts
+├── Images/
+│
 ├── src/
-│   ├── config.py
 │   ├── extract.py
 │   ├── transform.py
 │   ├── load.py
 │   ├── pipeline.py
 │   └── utils.py
 │
-├── Warehouse/           # Generated Data Warehouse
 ├── README.md
-├── requirements.txt
 └── .gitignore
 ```
 
-## ETL Pipeline
+---
 
-The pipeline is divided into three main phases:
+# ⚙️ Pipeline ETL
 
-### Extract
+## 1️⃣ Extraction
 
-- Read Airbnb CSV files
-- Load data using Pandas
+Lecture des fichiers sources :
 
-### Transform
+- Listings
+- Calendar
+- Reviews
 
-- Clean missing values
-- Convert dates
-- Convert prices
-- Build dimensions
-- Build fact tables
-- Generate surrogate keys
+---
 
-### Load
+## 2️⃣ Transformation
 
-- Export CSV files
-- Load all tables into SQLite
+Création des dimensions :
 
-## Key Features
+- **DIM_PROPERTY**
+- **DIM_HOST**
+- **DIM_LOCATION**
+- **DIM_DATE**
 
-- Automated ETL pipeline
-- Star Schema Data Warehouse
-- Surrogate Keys
-- Data Quality Checks
-- SQLite Database
-- Power BI Dashboard
-- Modular Python Architecture
+Création des tables de faits :
 
-## How to Run
+- **FACT_AVAILABILITY**
+- **FACT_REVIEWS**
 
-Clone the repository
+Traitements réalisés :
 
-```bash
-git clone https://github.com/FatoumataMBALLO/Airbnb-DataWarehouse.git
+- nettoyage des données
+- conversion des dates
+- suppression des doublons
+- création des clés techniques
+- modélisation dimensionnelle
+
+---
+
+## 3️⃣ Chargement
+
+Les données transformées sont automatiquement enregistrées :
+
+- en fichiers CSV
+- dans une base SQLite
+
+---
+
+# ⭐ Modèle de données
+
+Le Data Warehouse repose sur un **schéma en étoile**.
+
+```
+                    DIM_HOST
+                       │
+                       │
+DIM_LOCATION ─ DIM_PROPERTY ─ FACT_AVAILABILITY
+                       │
+                       │
+                  FACT_REVIEWS
+                       │
+                    DIM_DATE
 ```
 
-Install the required packages
+---
+
+# 📊 Tableau de bord Power BI
+
+Le rapport Power BI permet d'analyser :
+
+- 📌 le nombre total de logements
+- 🏘️ la répartition des logements par quartier
+- 📅 les disponibilités des logements
+- ⭐ les avis déposés
+- 📈 l'évolution des données dans le temps
+- 🎛️ des filtres interactifs (quartier, type de logement…)
+
+---
+
+# 📸 Aperçu du tableau de bord
+
+## Vue d'ensemble
+
+*(Ajouter une capture d'écran)*
+
+---
+
+## Analyse par quartier
+
+*(Ajouter une capture d'écran)*
+
+---
+
+## Disponibilités
+
+*(Ajouter une capture d'écran)*
+
+---
+
+# 💼 Compétences mises en œuvre
+
+### Data Engineering
+
+- Développement d'un pipeline ETL
+- Nettoyage et transformation des données
+- Modélisation dimensionnelle
+- Création d'un Data Warehouse
+- Gestion des clés techniques
+
+### Analyse de données
+
+- Manipulation de données avec Pandas
+- Contrôle qualité
+- Structuration des données
+
+### Business Intelligence
+
+- Création d'un tableau de bord Power BI
+- Conception de KPI
+- Visualisations interactives
+
+### Développement
+
+- Python
+- Git
+- GitHub
+- SQLite
+
+---
+
+# ▶️ Exécution du projet
+
+### Cloner le dépôt
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/VOTRE-PSEUDO/Airbnb-DataWarehouse.git
 ```
 
-Run the ETL pipeline
+### Installer les dépendances
 
 ```bash
-python src/pipeline.py
+pip install pandas
 ```
 
-## Dataset
+### Lancer le pipeline
 
-The project uses the public Airbnb Paris dataset.
+```bash
+cd src
+python pipeline.py
+```
 
-The original raw data is stored in the `Data/` folder.
+---
 
-The ETL pipeline cleans and transforms the raw files into a dimensional model stored in SQLite.
+# 🚀 Améliorations possibles
 
-## Future Improvements
+- Chargement incrémental des données
+- Migration vers PostgreSQL
+- Orchestration avec Apache Airflow
+- Conteneurisation avec Docker
+- Déploiement sur le Cloud
 
-* Build an interactive Power BI dashboard
-* Add incremental loading
-* Add logging
-* Add unit tests
-* Deploy the pipeline using Docker
+---
 
-## Author
+# 👩‍💻 À propos
 
-**Fatoumata MBALLO**
+**Fatoumata Ballo**
 
-Data Analyst | Python | SQL | Power BI
+Passionnée par la Data, je développe des projets autour de l'analyse de données, des pipelines ETL et de la Business Intelligence afin de transformer des données brutes en informations exploitables pour la prise de décision.
+
+## Compétences
+
+- Python
+- SQL
+- Pandas
+- Power BI
+- SQLite
+- Data Warehouse
+- ETL
+- Git & GitHub
+
+📧 Email : *à compléter*
+
+💼 LinkedIn : *à compléter*
+
+🌐 GitHub : *à compléter*
