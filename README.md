@@ -135,34 +135,72 @@ DIM_LOCATION ─ DIM_PROPERTY ─ FACT_AVAILABILITY
 
 # 📊 Tableau de bord Power BI
 
-Le rapport Power BI permet d'analyser :
+Le rapport Power BI comporte 4 pages permettant d'analyser :
 
-- 📌 le nombre total de logements
-- 🏘️ la répartition des logements par quartier
-- 📅 les disponibilités des logements
-- ⭐ les avis déposés
-- 📈 l'évolution des données dans le temps
-- 🎛️ des filtres interactifs (quartier, type de logement…)
+- 📌 le nombre total de logements et leur évolution
+- 🏘️ la répartition des logements par quartier et par type
+- 📅 les disponibilités des logements dans le temps
+- ⭐ les avis déposés et leur saisonnalité
+- 👤 le profil et le comportement des hôtes
+- 🗺️ la répartition géographique de l'offre
+- 🎛️ des filtres interactifs (quartier, type de logement, type de chambre…)
 
 ---
 
 # 📸 Aperçu du tableau de bord
 
-## Vue d'ensemble
+## 1. Vue d'ensemble
 
-*(Ajouter une capture d'écran)*
+![Vue d'ensemble du tableau de bord](Images/Vue%20d'ensemble.png)
+
+**Interprétation des résultats :**
+
+- **Domination des logements entiers** : 88,33 % de l'ensemble des annonces actives à Paris concernent des logements ou appartements entiers (soit 72,3K logements), loin devant les chambres privées (10,66 %) et les chambres d'hôtel (0,81 %).
+- **Type de bien principal** : les appartements standards constituent le cœur absolu de l'offre parisienne avec 71K propriétés enregistrées, suivis de loin par les chambres d'hôtes (7K) et les lofts/maisons (1K chacun).
+- **Saisonnalité forte de l'activité** : le volume mensuel d'avis clients (2025 vs 2024) met en évidence un pic marqué au mois de juin (près de 60K avis), correspondant à la haute saison touristique parisienne, avant une décrue progressive à l'approche de l'automne.
+- **Croissance d'une année sur l'autre** : les indicateurs clés affichent tous une progression par rapport à l'année précédente (logements +19,4 %, hôtes actifs +8,3 %, avis totaux +37,7 %), signe d'un marché en expansion sur la période observée.
+- **Top 5 quartiers** : Montmartre (18e) domine avec 8,7K logements, suivi de Bastille (11e) et Vaugirard (15e) — une concentration cohérente avec les zones touristiques centrales de Paris.
 
 ---
 
-## Analyse par quartier
+## 2. Disponibilité
 
-*(Ajouter une capture d'écran)*
+![Page Disponibilité](Images/Disponibilté.png)
+
+**Interprétation des résultats :**
+
+- **Échantillon suivi** : l'analyse de disponibilité porte sur 275 logements disposant d'un calendrier complet sur la période observée (0,3 % de couverture par rapport à l'ensemble du parc), ce qui permet une lecture fine de la tendance sans viser l'exhaustivité.
+- **Tendance de disponibilité croissante** : le taux de disponibilité progresse de 5 % fin septembre à un plateau autour de 25-30 % en décembre — un schéma cohérent avec un calendrier de réservation classique (les dates proches sont déjà réservées, les dates lointaines restent encore libres).
+- **Écart par type de logement** : les chambres privées affichent un taux de disponibilité légèrement supérieur aux logements entiers, ces derniers étant davantage prisés par les voyageurs.
+- **Disponibilité par quartier inversement corrélée à la popularité** : les quartiers les moins demandés en volume (Batignolles, Vaugirard) affichent les taux de disponibilité les plus élevés (31,5 % et 22,5 %), tandis que les quartiers les plus fréquentés (Montmartre, Bastille) sont aussi les plus tendus (17,7 % et 17,2 %) — signe d'un marché plus compétitif dans les zones à forte attractivité touristique.
+- **Effet jour de semaine** : le vendredi est le jour le plus tendu (22,2 % de disponibilité, le plus bas de la semaine), cohérent avec les arrivées de weekend typiques d'un marché touristique urbain.
 
 ---
 
-## Disponibilités
+## 3. Hôtes
 
-*(Ajouter une capture d'écran)*
+![Page Hôtes](Images/Hôtes.png)
+
+**Interprétation des résultats :**
+
+- **Profil des hôtes** : 18,1 % des hôtes actifs sont des Superhosts, un label attribué par Airbnb aux hôtes les plus fiables et réactifs.
+- **Ancienneté marquée** : la grande majorité des hôtes (plus de 40K) sont inscrits depuis 8 ans ou plus, révélant un marché parisien mature et déjà largement établi plutôt qu'en phase de démarrage.
+- **Qualité de service liée au statut** : les Superhosts affichent un taux de réponse moyen nettement supérieur aux hôtes standards, cohérent avec les critères d'attribution du label.
+- **Concentration professionnelle** : le Top 10 des hôtes révèle une forte présence de gestionnaires multi-logements — certains hôtes comme "Joffrey Sally" (993 logements) ou "Blueground" (816 logements, société de gestion locative connue) gèrent des portefeuilles considérables, bien loin du profil de l'hôte particulier occasionnel.
+- **Structure du marché** : malgré ces quelques gros acteurs, 91,38 % des hôtes ne possèdent qu'un seul logement (mono-logement), et seuls 8,62 % en gèrent plusieurs — la moyenne de 1,37 logement par hôte masque donc une réalité bimodale entre une majorité de particuliers et une minorité de gestionnaires professionnels concentrant un volume disproportionné de l'offre.
+
+---
+
+## 4. Localisation
+
+![Page Localisation](Images/Localisation.png)
+
+**Interprétation des résultats :**
+
+- **Couverture géographique complète** : les 20 quartiers (arrondissements) de Paris sont tous représentés dans le jeu de données, avec une capacité moyenne de 3 voyageurs par logement.
+- **Concentration centrale** : la carte des logements confirme une forte densité au cœur de Paris, avec une décroissance progressive vers la périphérie — cohérent avec l'attractivité touristique du centre historique.
+- **Quartier dominant** : Montmartre (18e) est à la fois le quartier le plus dense (8,7K logements, 38,56 % du Top 3) et l'un des plus fréquentés en avis, confirmant son statut de pôle touristique majeur.
+- **Répartition par arrondissement** : parmi les trois premiers quartiers, Montmartre représente à lui seul plus du tiers de l'offre (38,56 %), suivi de Bastille (31,99 %) et Vaugirard (29,45 %) — une répartition relativement équilibrée entre ces trois zones dominantes malgré l'écart avec le reste du classement.
 
 ---
 
@@ -187,6 +225,7 @@ Le rapport Power BI permet d'analyser :
 - Création d'un tableau de bord Power BI
 - Conception de KPI
 - Visualisations interactives
+- Mesures DAX avancées (comparaisons temporelles, gestion de contextes de filtre complexes)
 
 ### Développement
 
@@ -202,7 +241,7 @@ Le rapport Power BI permet d'analyser :
 ### Cloner le dépôt
 
 ```bash
-git clone https://github.com/VOTRE-PSEUDO/Airbnb-DataWarehouse.git
+git clone https://github.com/FatoumataMBALLO/Airbnb-DataWarehouse.git
 ```
 
 ### Installer les dépendances
@@ -247,8 +286,8 @@ Passionnée par la Data, je développe des projets autour de l'analyse de donné
 - ETL
 - Git & GitHub
 
-📧 Email : *à compléter*
+📧 Email : fatoumatamballozig@gmail.com
 
-💼 LinkedIn : *à compléter*
+💼 LinkedIn : www.linkedin.com/in/fmballo
 
-🌐 GitHub : *à compléter*
+🌐 GitHub : [*à compléter*](https://github.com/FatoumataMBALLO)
